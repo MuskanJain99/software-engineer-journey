@@ -1,5 +1,7 @@
 const fs = require('fs');  // Load file system tools
 const path = require('path');  // Load path tools
+const readline = require('readline'); // Load readline tools
+
 
 // Tell Node where to save the file
 const TODOS_FILE = path.join(__dirname, 'todos.json');
@@ -134,6 +136,29 @@ function deleteTodo(id) {
   console.log(`✓ Todo ${id} deleted: ${deleted.text}`);
 }
 
+function clearTodos() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  rl.question("Are you sure? (yes/no): ", answer => {
+    if(answer === "yes"){
+      try {
+        writeTodos([]);
+        console.log("Todos cleared!");  // Show feedback
+      } catch (err) {
+        console.error('Error clearing todos:', err.message);
+      }
+    }
+    else {
+      console.log("Cancelled!")
+    }
+
+    rl.close();
+  })
+}
+
 // ===== MAIN PROGRAM =====
 
 // Get command from user
@@ -165,6 +190,9 @@ switch (command) {
     } else {
       deleteTodo(arg);
     }
+    break;
+  case 'clear':
+    clearTodos();
     break;
   default:
     console.log('Commands: add, list, done, delete');
