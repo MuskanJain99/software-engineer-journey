@@ -12,18 +12,25 @@ const TODOS_FILE = path.join(__dirname, 'todos.json');
 // Function 1: READ todos from file
 function readTodos() {
   try {
-    // Check if file exists
     if (fs.existsSync(TODOS_FILE)) {
-      // Read file as text
       const data = fs.readFileSync(TODOS_FILE, 'utf-8');
-      // Convert text to JavaScript object
+      
+      // Check if file is empty
+      if (data.trim() === '') {
+        return [];
+      }
+      
       return JSON.parse(data);
     }
   } catch (err) {
-    // If something goes wrong, show error
+    // Specific error message for corrupted JSON
+    if (err instanceof SyntaxError) {
+      console.error('⚠️  Error: todos.json is corrupted. Resetting todos.');
+      writeTodos([]); // Reset to empty array
+      return [];
+    }
     console.error('Error reading todos:', err.message);
   }
-  // If file doesn't exist, return empty list
   return [];
 }
 
@@ -98,6 +105,12 @@ function listTodos() {
 // Command 3: MARK todo as done
 function markDone(id) {
   const todos = readTodos();  // Get all todos
+
+  // Check if ID is a valid number
+  if (isNaN(parseInt(id))) {
+    console.error(`Error: "${id}" is not a valid ID. Please enter a number.`);
+    return;
+  }
   
   // Find the todo with this ID
   const todo = todos.find(t => t.id === parseInt(id));
@@ -118,6 +131,12 @@ function markDone(id) {
 // Command 4: DELETE a todo
 function deleteTodo(id) {
   const todos = readTodos();  // Get all todos
+
+  // Check if ID is a valid number
+  if (isNaN(parseInt(id))) {
+    console.error(`Error: "${id}" is not a valid ID. Please enter a number.`);
+    return;
+  }
   
   // Find position of this todo
   const index = todos.findIndex(t => t.id === parseInt(id));
@@ -137,26 +156,36 @@ function deleteTodo(id) {
 }
 
 function clearTodos() {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
+  const todos = readTodos();
+  if (todos.length === 0) {
+    console.log("No Todos to clear!");
+  }
+  else {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
 
-  rl.question("Are you sure? (yes/no): ", answer => {
-    if(answer === "yes"){
-      try {
-        writeTodos([]);
-        console.log("Todos cleared!");  // Show feedback
-      } catch (err) {
-        console.error('Error clearing todos:', err.message);
+    rl.question(`You have ${todos.length} todos. Are you sure you want to clear them all? (yes/no): `, answer => {
+      const userAnswer = answer.trim().toLowerCase();
+      if(userAnswer === "yes"){
+        try {
+          writeTodos([]);
+          console.log(`${todos.length} Todos cleared!`);  // Show feedback
+        } catch (err) {
+          console.error('Error clearing todos:', err.message);
+        }
       }
-    }
-    else {
-      console.log("Cancelled!")
-    }
+      else if(userAnswer === "no") {
+        console.log("Cancelled!")
+      }
+      else {
+        console.log("Command not found! Please enter yes or no");
+      }
 
-    rl.close();
-  })
+      rl.close();
+    })
+  }
 }
 
 // ===== MAIN PROGRAM =====
