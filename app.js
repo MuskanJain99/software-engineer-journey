@@ -1,5 +1,5 @@
 // API Base URL
-const API_URL = 'http://localhost:3000/api/todos';
+const API_URL = '/api/todos';
 
 // DOM Elements
 const todoInput = document.getElementById('todoInput');
